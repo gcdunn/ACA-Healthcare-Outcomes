@@ -1,1 +1,1 @@
-### The Afoordable Care Act and healthcare outcomes: A Shiny dashboard
+### The Affordable Care Act and healthcare outcomes: A Shiny dashboard
