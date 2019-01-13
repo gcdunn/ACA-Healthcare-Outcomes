@@ -26,4 +26,3 @@ insurance2014 <- readRDS('data/InsuranceCoverageTotal2014.RDS')
 insurance2015 <- readRDS('data/InsuranceCoverageTotal2015.RDS')
 insurance2016 <- readRDS('data/InsuranceCoverageTotal2016.RDS')
 insurance2017 <- readRDS('data/InsuranceCoverageTotal2017.RDS')
-
