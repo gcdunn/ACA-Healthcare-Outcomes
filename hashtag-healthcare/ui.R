@@ -30,8 +30,32 @@ shinyUI(
                     choices = medicaid$State,
                     selected = 'Tennessee')
                 ), # close box
+                box(
+                  title = 'Year:',
+                  selectInput('year', label = NULL,
+                    choices = years,
+                    selected = '2016')
+                ), # close box
                 infoBoxOutput("medicaid_box",width=5)
           ) #close fluidRow
+        ), #close tabItem
+        tabItem(tabName = 'insurance',
+                title = '', status = 'primary', solidHeader = TRUE, width=3,
+                h3('Breakdown of insurance coverage'),
+                fluidRow(
+                  box(
+                    title = 'State:',
+                    selectInput('state2', label = NULL,
+                                choices = medicaid$State,
+                                selected = 'Tennessee')
+                  ) # close box
+                ), #close fluidRow
+                fluidRow(
+                  box(
+                    title = element_blank(), status = "primary", solidHeader = TRUE,width=40,
+                    plotOutput("insurance_pie", height = 500, width = 800)
+                  ) # close box
+                ) # close fluidBox
         ), #close tabItem
         tabItem(tabName = 'data',
                 title = 'Data', status = 'primary', solidHeader = TRUE, width=3,
