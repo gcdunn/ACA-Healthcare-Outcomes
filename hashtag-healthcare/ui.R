@@ -38,7 +38,13 @@ shinyUI(
                     value = 2016, sep = "")
                 ), # close box
                 infoBoxOutput("medicaid_box",width=5)
-          ) #close fluidRow
+          ), #close fluidRow
+          fluidRow(
+            box(
+              title = "Un-insurance rates", status = "primary", solidHeader = FALSE,width=40,
+              plotOutput("insurance_map", height = 500, width = 800)
+            ) # close box
+          ) # close fluidBox
         ), #close tabItem
         tabItem(tabName = 'insurance',
                 title = '', status = 'primary', solidHeader = TRUE, width=3,
