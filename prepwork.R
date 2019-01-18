@@ -70,6 +70,13 @@ prenatal_medicaid <- birthsLatePrenatalCare6Mo %>% filter(Year=='2015') %>%
   inner_join(medicaid,by = c("State" = "State")) %>% 
   mutate(birthsNorm = Births/TotalBirths) %>%
   group_by(Expanded)
+# cancerDeaths/Medicaid
+# replace '2015' with input$Year 
+cancerDeaths_medicaid <- AllCancerDeathsByState %>% filter(Year=='2015') %>% 
+  select(-Year,-Deaths,-Population) %>%
+  inner_join(medicaid,by = c("State" = "State")) %>%
+  group_by(Expanded)
+
 #box blots
 ggplot(er_medicaid, aes(x=Expanded, y=VisitsPer1k, fill=Expanded)) + 
   geom_boxplot()
@@ -77,6 +84,9 @@ ggplot(teens_medicaid, aes(x=Expanded, y=birthsNorm, fill=Expanded)) +
   geom_boxplot()
 ggplot(prenatal_medicaid, aes(x=Expanded, y=birthsNorm, fill=Expanded)) + 
   geom_boxplot()
+ggplot(cancerDeaths_medicaid, aes(x=Expanded, y=DeathsPer100k, fill=Expanded)) + 
+  geom_boxplot()
+
 #T-tests
 expanded <- er_medicaid %>% filter(Expanded=='TRUE') %>% select(VisitsPer1k)
 not_expanded <- er_medicaid %>% filter(Expanded=='FALSE') %>% select(VisitsPer1k)
