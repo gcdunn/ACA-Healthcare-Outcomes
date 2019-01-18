@@ -32,9 +32,10 @@ shinyUI(
                 ), # close box
                 box(
                   title = 'Year:',
-                  selectInput('year', label = NULL,
-                    choices = years,
-                    selected = '2016')
+                  sliderInput('year', label = NULL,
+                    min = min(years),
+                    max = max(years),
+                    value = 2016, sep = "")
                 ), # close box
                 infoBoxOutput("medicaid_box",width=5)
           ) #close fluidRow
@@ -51,9 +52,10 @@ shinyUI(
                   ), # close box
                   box(
                     title = 'Year:',
-                    selectInput('year2', label = NULL,
-                                choices = years,
-                                selected = '2016')
+                    sliderInput('year2', label = NULL,
+                                min = min(years),
+                                max = max(years),
+                                value = 2016, sep = "")
                   ) # close box
                 ), #close fluidRow
                 fluidRow(

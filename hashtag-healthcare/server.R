@@ -16,7 +16,8 @@ shinyServer(function(input, output) {
   })
   
   output$insurance_map <- renderPlot({
-    plot_usmap(data = insurance2016, values = "PctUninsured", lines = "white") + 
+    insurance <- bigInsuranceTable %>% filter(Year==toString(input$year))
+    plot_usmap(data = insurance, values = "PctUninsured", lines = "white") + 
       scale_fill_continuous(low = "#c79fef", high = "#35063e", name = "Percent\n Uninsured", 
                             label = scales::comma) + 
       theme(legend.position = "right", legend.key.size = unit(1.75, "cm"), 
@@ -25,8 +26,7 @@ shinyServer(function(input, output) {
   })
   
   output$insurance_pie <- renderPlot({
-    tableName <- insuranceTableList[years==input$year2]
-    subset <- insurance2008 %>% filter(state==input$state2) %>% select(-PctUninsured) %>% mutate_if(is.numeric, funs(./Total)) %>%
+    subset <- bigInsuranceTable %>% filter(state==input$state2,Year==toString(input$year2)) %>% select(-PctUninsured) %>% mutate_if(is.numeric, funs(./Total)) %>%
       gather(key=Source,value=Fraction,Employer,`Non-Group`,Medicaid,Medicare,`Other Public`,Uninsured) %>% select(-Total)
     ggplot(subset, aes(x="", y=Fraction, fill=Source)) + geom_bar(stat="identity", width=1) +
       coord_polar("y", start=0) + geom_text(aes(label = percent(round(Fraction,2))), position = position_stack(vjust = 0.5)) +
