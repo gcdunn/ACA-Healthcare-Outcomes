@@ -48,11 +48,17 @@ shinyUI(
                     selectInput('state2', label = NULL,
                                 choices = medicaid$State,
                                 selected = 'Tennessee')
+                  ), # close box
+                  box(
+                    title = 'Year:',
+                    selectInput('year2', label = NULL,
+                                choices = years,
+                                selected = '2016')
                   ) # close box
                 ), #close fluidRow
                 fluidRow(
                   box(
-                    title = element_blank(), status = "primary", solidHeader = TRUE,width=40,
+                    title = "Types of Insurance", status = "primary", solidHeader = FALSE,width=40,
                     plotOutput("insurance_pie", height = 500, width = 800)
                   ) # close box
                 ) # close fluidBox

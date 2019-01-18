@@ -1,4 +1,4 @@
-library(shinydashboard)
+library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(ggplot2)
@@ -27,4 +27,8 @@ insurance2015 <- readRDS('data/InsuranceCoverageTotal2015.RDS') %>% filter(state
 insurance2016 <- readRDS('data/InsuranceCoverageTotal2016.RDS') %>% filter(state != 'District of Columbia') %>% mutate(PctUninsured = 100*Uninsured/Total)
 insurance2017 <- readRDS('data/InsuranceCoverageTotal2017.RDS') %>% filter(state != 'District of Columbia') %>% mutate(PctUninsured = 100*Uninsured/Total)
 
+insuranceTableList <- c(insurance2008, insurance2009, insurance2010, insurance2011, insurance2012, insurance2013, 
+                        insurance2014, insurance2015, insurance2016, insurance2017)
 years <- c('2008','2009','2010','2011','2012','2013','2014','2015','2016','2017')
+
+

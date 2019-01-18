@@ -25,13 +25,13 @@ shinyServer(function(input, output) {
   })
   
   output$insurance_pie <- renderPlot({
-    df <- insurance2008
-    subset <- df %>% filter(state==input$state2) %>% select(-PctUninsured) %>% mutate_if(is.numeric, funs(./Total)) %>%
+    tableName <- insuranceTableList[years==input$year2]
+    subset <- insurance2008 %>% filter(state==input$state2) %>% select(-PctUninsured) %>% mutate_if(is.numeric, funs(./Total)) %>%
       gather(key=Source,value=Fraction,Employer,`Non-Group`,Medicaid,Medicare,`Other Public`,Uninsured) %>% select(-Total)
     ggplot(subset, aes(x="", y=Fraction, fill=Source)) + geom_bar(stat="identity", width=1) +
       coord_polar("y", start=0) + geom_text(aes(label = percent(round(Fraction,2))), position = position_stack(vjust = 0.5)) +
       scale_fill_manual(values=c("#55DDE0", "#33658A", "#F26419", "#999999", "#F6AE2D", "#887191")) + #alt colors #2F4858
-      labs(x = NULL, y = NULL, fill = NULL, title = "Types of Insurance") +
+      labs(x = NULL, y = NULL, fill = NULL, title = NULL) +
       theme_classic() + theme(axis.line = element_blank(),
                               axis.text = element_blank(),
                               axis.ticks = element_blank(),
