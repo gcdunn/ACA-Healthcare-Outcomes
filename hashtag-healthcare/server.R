@@ -28,14 +28,19 @@ shinyServer(function(input, output) {
   output$insurance_pie <- renderPlot({
     subset <- bigInsuranceTable %>% filter(state==input$state2,Year==toString(input$year2)) %>% select(-PctUninsured) %>% mutate_if(is.numeric, funs(./Total)) %>%
       gather(key=Source,value=Fraction,Employer,`Non-Group`,Medicaid,Medicare,`Other Public`,Uninsured) %>% select(-Total)
-    ggplot(subset, aes(x="", y=Fraction, fill=Source)) + geom_bar(stat="identity", width=1) +
-      coord_polar("y", start=0) + geom_text(aes(label = percent(round(Fraction,2))), position = position_stack(vjust = 0.5)) +
+    ggplot(subset, aes(x=reorder(Source,Fraction), y=Fraction, fill=Source)) + 
+      geom_bar(stat="identity", width=1) +
+      coord_flip() +
+      geom_text(aes(label = paste0(as.integer(round(Fraction,2)*100),"%")), y=subset$Fraction, size = 5, hjust=1.1,color = "black") +
       scale_fill_manual(values=c("#55DDE0", "#33658A", "#F26419", "#999999", "#F6AE2D", "#887191")) + #alt colors #2F4858
       labs(x = NULL, y = NULL, fill = NULL, title = NULL) +
-      theme_classic() + theme(axis.line = element_blank(),
-                              axis.text = element_blank(),
-                              axis.ticks = element_blank(),
-                              plot.title = element_text(hjust = 0.5, color = "#363737"))
+      theme_tufte() +
+      theme(axis.ticks = element_blank(),
+            axis.text.y = element_blank(),
+            axis.text.x = element_blank(),
+            legend.position="bottom",
+            legend.key.size = unit(2, "cm"),
+            legend.text = element_text(size = 20, face = 'bold'))
     
   })
   

@@ -2,6 +2,7 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(ggplot2)
+library(ggthemes)
 library(magrittr)
 # for word clouds
 library(tm)

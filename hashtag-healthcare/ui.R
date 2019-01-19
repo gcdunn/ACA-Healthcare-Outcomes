@@ -1,7 +1,7 @@
 # Define UI
 shinyUI(
   fluidPage(
-    theme = shinythemes::shinytheme('cerulean'),
+    theme = shinythemes::shinytheme('yeti'),
     dashboardPage(
         skin = 'blue',
         dashboardHeader(title = '#healthcare'),
