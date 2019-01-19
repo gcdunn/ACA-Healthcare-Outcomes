@@ -42,7 +42,7 @@ shinyUI(
           fluidRow(
             box(
               title = "Un-insurance rates", status = "primary", solidHeader = FALSE,width=40,
-              plotOutput("insurance_map", height = 500, width = 800)
+              plotOutput("insurance_map", width="100%")
             ) # close box
           ) # close fluidBox
         ), #close tabItem
@@ -67,9 +67,23 @@ shinyUI(
                 fluidRow(
                   box(
                     title = "Types of Insurance", status = "primary", solidHeader = FALSE,width=40,
-                    plotOutput("insurance_pie", height = 500, width = 800)
+                    plotOutput("insurance_bar", width = "100%")
                   ) # close box
                 ) # close fluidBox
+        ), #close tabItem
+        tabItem(tabName = 'twitter',
+                title = '', status = 'primary', solidHeader = TRUE, width=3,
+                h3('How do people feel about healthcare right now?'),
+                fluidRow(
+                  #box(
+                    wordcloud2Output("word_cloud", width=600)
+                  #) # close box
+                ),
+                fluidRow(
+                  #box(
+                    plotOutput("sentiment_graph", width=600)
+                  #) # close box
+                ) #close fluidRow
         ), #close tabItem
         tabItem(tabName = 'data',
                 title = 'Data', status = 'primary', solidHeader = TRUE, width=3,

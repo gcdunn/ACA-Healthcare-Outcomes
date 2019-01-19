@@ -25,7 +25,37 @@ shinyServer(function(input, output) {
     
   })
   
-  output$insurance_pie <- renderPlot({
+  output$word_cloud <- renderWordcloud2({
+    tweet_table <- healthcare_tweets %>% unnest_tokens(word, text) %>%  anti_join(stop_words) %>% filter(!nchar(word) < 3) %>%
+      filter(!tolower(word) %in% c('icymi','healthcare','aca','obamacare','medicaid','dont','im','isnt','trump','issues','issue','cloud'))
+    word_count <- tweet_table %>% count(word, sort = TRUE) %>% filter(n > 2)
+    figPath = system.file("examples/t.png",package = "wordcloud2")
+    wordcloud2(word_count, figPath=figPath,size = 2.3, minRotation = -pi/6, maxRotation = -pi/6, rotateRatio = 1)
+   
+  })
+  
+  output$sentiment_graph <- renderPlot({
+    sentiment_table <- tweet_table %>% inner_join(get_sentiments("bing")) 
+    word_counts <- sentiment_table %>%
+      inner_join(get_sentiments("bing")) %>%
+      count(word,sentiment)
+    top_words <- word_counts %>% group_by(sentiment) %>% top_n(10) %>% 
+      ungroup() %>% mutate(word = reorder(word, n)) %>%
+      mutate(score = case_when(
+        sentiment=='positive' ~ n,
+        sentiment=='negative' ~ as.integer(-1*n)
+      ))
+    
+    ggplot(top_words, aes(reorder(word,score), score, fill = sentiment)) +
+      geom_col(show.legend = FALSE) +
+      #facet_wrap(~sentiment, scales = "free") +  
+      coord_flip() +
+      ylab('Word Count') +
+      xlab('Sentiment Score')
+    
+  })
+  
+  output$insurance_bar <- renderPlot({
     subset <- bigInsuranceTable %>% filter(state==input$state2,Year==toString(input$year2)) %>% select(-PctUninsured) %>% mutate_if(is.numeric, funs(./Total)) %>%
       gather(key=Source,value=Fraction,Employer,`Non-Group`,Medicaid,Medicare,`Other Public`,Uninsured) %>% select(-Total)
     ggplot(subset, aes(x=reorder(Source,Fraction), y=Fraction, fill=Source)) + 
