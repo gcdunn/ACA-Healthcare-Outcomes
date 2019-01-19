@@ -16,7 +16,7 @@ library(tweetbotornot)
 
 setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 hashtags <- c("#healthcare","#ACA", "#Obamacare", "#Medicaid")
-healthcare_tweets_save <- search_tweets(paste(hashtags, collapse = " OR "), n = 10000, include_rts = FALSE)
+healthcare_tweets_save <- search_tweets(paste(hashtags, collapse = " OR "), n = 18000, include_rts = FALSE)
 healthcare_tweets <- data.frame(healthcare_tweets_save)
 healthcare_tweets$text <- healthcare_tweets$text %>% lapply(function(x) gsub("&amp", "",x))
 healthcare_tweets$text <- healthcare_tweets$text %>% lapply(function(x) gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "",x))
@@ -27,13 +27,34 @@ healthcare_tweets$text <- healthcare_tweets$text %>% lapply(function(x) gsub("ht
 healthcare_tweets$text <- healthcare_tweets$text %>% lapply(function(x) gsub("[ \t]{2,}", "",x))
 healthcare_tweets$text <- healthcare_tweets$text %>% lapply(function(x) gsub("^\\s+|\\s+$", "",x))
 botability <- healthcare_tweets_save %>% botornot()
-healthcare_tweets <- healthcare_tweets %>% filter(str_detect(source,"Tw*")) #inner_join(botability) %>% filter(prob_bot <= 0.2)
-tweet_table <- healthcare_tweets %>% unnest_tokens(word, text) %>% anti_join(stop_words) %>% 
-  filter(!word %in% c('t.co', 'https','job', 'jobs', 'hospitaljobs', 'medicaljobs','link','de','la', "it's", 'el', 'en', 'tv', 'je', 'ep', 'amp')) %>%
-  count(word, sort = TRUE) %>% filter(n > 2)
+healthcare_tweets <- healthcare_tweets %>% inner_join(botability) %>% filter(str_detect(source,"Tw*")) %>% filter(account_lang=='en')
 
+tweet_table <- healthcare_tweets %>% unnest_tokens(word, text) %>% anti_join(stop_words) %>% filter(!nchar(word) < 3) %>%
+  filter(!tolower(word) %in% c('icymi','healthcare','aca','obamacare','medicaid','dont','im','isnt','trump','issues','issue','cloud'))
+word_count <- tweet_table %>% count(word, sort = TRUE) %>% filter(n > 2)
 figPath = system.file("examples/t.png",package = "wordcloud2")
-wordcloud2(tweet_table, figPath=figPath,size = 2.3, minRotation = -pi/6, maxRotation = -pi/6, rotateRatio = 1)
+wordcloud2(word_count, figPath=figPath,size = 2.3, minRotation = -pi/6, maxRotation = -pi/6, rotateRatio = 1)
+sentiment_table <- tweet_table %>% inner_join(get_sentiments("bing")) 
+sentiment_table %>% count(word, sort = TRUE) %>% 
+  wordcloud2(figPath=figPath,size = 2.3, minRotation = -pi/6, maxRotation = -pi/6, rotateRatio = 1)
+
+word_counts <- sentiment_table %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word,sentiment)
+
+top_words <- word_counts %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n))
+
+ggplot(top_words, aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free") +  
+  coord_flip() +
+  ylab('Word Count') +
+  xlab('Word')
+
 # load datsets
 medicaid <- readRDS('data/MedicaidExpansion.RDS')
 populations <- readRDS('data/StatePopulations.RDS')
