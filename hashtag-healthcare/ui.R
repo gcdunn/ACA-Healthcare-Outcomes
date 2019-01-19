@@ -25,24 +25,26 @@ shinyUI(
               h3('State-level analysis of healthcare outcomes'),
               fluidRow(
                 box(
-                  title = 'State:',
-                  selectInput('state', label = NULL,
-                    choices = medicaid$State,
-                    selected = 'Tennessee')
+                  title = 'Healthcare outcomes:',
+                  selectInput('metric', label = NULL,
+                    choices = unique(allMetrics$Data),
+                    selected = 'ER Visits Per 1,000 People')
                 ), # close box
                 box(
                   title = 'Year:',
-                  sliderInput('year', label = NULL,
-                    min = min(years),
-                    max = max(years),
-                    value = 2016, sep = "")
+                  radioButtons('year', label = NULL,
+                    choices = years,
+                    selected = '2016',
+                    inline = TRUE)
                 ), # close box
-                infoBoxOutput("medicaid_box",width=5)
+                #infoBoxOutput("medicaid_box",width=5),
+                infoBoxOutput("stat_box",width=5)
           ), #close fluidRow
           fluidRow(
             box(
-              title = "Un-insurance rates", status = "primary", solidHeader = FALSE,width=40,
-              plotOutput("insurance_map", width="100%")
+              title = "", status = "primary", solidHeader = FALSE,width=40,
+              plotOutput("box_plot")
+              
             ) # close box
           ) # close fluidBox
         ), #close tabItem
@@ -58,10 +60,10 @@ shinyUI(
                   ), # close box
                   box(
                     title = 'Year:',
-                    sliderInput('year2', label = NULL,
-                                min = min(years),
-                                max = max(years),
-                                value = 2016, sep = "")
+                    radioButtons('year2', label = NULL,
+                                choices=years,
+                                selected = '2016',
+                                inline = TRUE)
                   ) # close box
                 ), #close fluidRow
                 fluidRow(
@@ -76,12 +78,10 @@ shinyUI(
                 h3('How do people feel about healthcare right now?'),
                 fluidRow(
                   #box(
-                    wordcloud2Output("word_cloud", width=600)
+                    column(width=6,wordcloud2Output("word_cloud")),
                   #) # close box
-                ),
-                fluidRow(
                   #box(
-                    plotOutput("sentiment_graph", width=600)
+                    column(width=6,plotOutput("sentiment_graph"))
                   #) # close box
                 ) #close fluidRow
         ), #close tabItem
