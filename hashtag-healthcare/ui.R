@@ -24,18 +24,29 @@ shinyUI(
               title = '', status = 'primary', solidHeader = TRUE, width=3,
               h3('After ACA: Do states with Medicaid expansion offer improved healthcare access?'),
               fluidRow(
+                column(width=10,
                 box(
                   title = 'Select a choice:',
                   selectInput('metric', label = NULL,
                     choices = unique(all_access$Data),
                     selected = 'Percent of women without a healthcare provider')
                 ), # close box
-                infoBoxOutput("stat_box1",width=6),
+                infoBoxOutput("stat_box1",width=6)
+                ),
+                column(width=10,
+                       box(
+                         title = 'Visualization:',
+                         radioButtons('plot', label = NULL,
+                                      choices=c('Box plot', 'Histogram'),
+                                      selected = 'Box plot',
+                                      inline = TRUE)
+                       ), # close box
                 valueBoxOutput("stat_box2",width=6)
+                )
           ), #close fluidRow
           fluidRow(
             box(
-              title = "2015-2017 Healthcare statistics", status = "primary", solidHeader = FALSE,width=40,
+              title = "2015-2017 Healthcare access", status = "primary", solidHeader = FALSE,width=40,
               plotOutput("box_plot", height=450)
             ) # close box
           ) # close fluidBox
@@ -50,13 +61,6 @@ shinyUI(
                                 choices = medicaid$State,
                                 selected = 'Kentucky')
                   ), # close box
-                  #box(
-                  #  title = 'Year:',
-                  #  radioButtons('year2', label = NULL,
-                  #              choices=years,
-                  #              selected = '2016',
-                  #              inline = TRUE)
-                  #) # close box
                   infoBoxOutput("medicaid_box",width=6)
                   
                 ), #close fluidRow

@@ -9,7 +9,7 @@ shinyServer(function(input, output) {
     } else {
       boxInput <- c('did not expand', 'red', 'thumbs-down')
     }
-    infoBox(input$state , paste0(boxInput[1], ' Medicaid.'),
+    infoBox(input$state , paste0(boxInput[1], ' Medicaid'),
             color = boxInput[2],
             icon = icon(boxInput[3])
     )# close infoBox
@@ -144,12 +144,14 @@ shinyServer(function(input, output) {
       group_by(Era,state) %>% summarize(Medicaid=mean(Medicaid)) %>%
       ungroup() %>% spread(key=Era,value=Medicaid) %>% 
       inner_join(medicaidAll,by=c("state"="State"))
-    subset$state <- factor(subset$state, levels = subset$state[order(subset$`2011-2013`)])
-    
+    #subset$state <- factor(subset$state, levels = subset$state[order(subset$`2011-2013`)])
     ggplot(subset) +
-      geom_segment( aes(x=state, xend=state, y=`2011-2013`, yend=`2014-2016`), color="grey",size=ifelse(subset$Expanded == 'TRUE', 1.3, 0.7)) +
-      geom_point( aes(x=state, y=`2011-2013`), color='#F26419', size=ifelse(subset$Expanded == 'TRUE', 5, 2)) +
-      geom_point( aes(x=state, y=`2014-2016`), color='#999999', size=ifelse(subset$Expanded == 'TRUE', 5, 2)) +
+      geom_segment( aes(x=reorder(state,`2011-2013`), xend=state, y=`2011-2013`, yend=`2014-2016`), color=ifelse(subset$state == input$state, "ivory4","grey"),size=1.3) +
+      geom_point( aes(x=reorder(state,`2011-2013`), y=`2011-2013`), color=ifelse(subset$state == input$state, 'salmon', '#cdffeb'), size=ifelse(subset$Expanded == 'TRUE', 5, 4)) +
+      geom_point( aes(x=reorder(state,`2011-2013`), y=`2014-2016`), color=ifelse(subset$state == input$state, 'maroon', '#009f9d'), size=ifelse(subset$Expanded == 'TRUE', 5, 4)) +
+      #geom_rect(aes(xmin=reorder(state,`2011-2013`)[which(reorder(state,`2011-2013`)==input$state)-1], xmax=reorder(state,`2011-2013`)[which(reorder(state,`2011-2013`)==input$state)+1], ymin=0.05, ymax=0.35), 
+      #          color=ifelse(subset$Expanded[which(subset$state==input$state)] == 'TRUE', 'green', 'red'), 
+      #          fill="transparent", alpha=0.01) +
       coord_flip() + 
       theme_light() +
       theme(
@@ -161,7 +163,25 @@ shinyServer(function(input, output) {
         panel.border = element_blank(),
       ) +
       xlab("State") +
-      ylab("Percent of population covered by Medicaid")
+      ylab("Percent of population covered by Medicaid") +
+      scale_x_discrete(labels=c(  "Arkansas"=expression(bold("Arkansas")),
+                                  "Delaware"=expression(bold("Delaware")),
+                                  "Colorado"=expression(bold("Colorado")),
+                                  "Illinois"=expression(bold("Illinois")),
+                                  "Iowa"=expression(bold("Iowa")),
+                                  "Kentucky"=expression(bold("Kentucky")),
+                                  "Maryland"=expression(bold("Maryland")),
+                                  "Massachusetts"=expression(bold("Massachusetts")),
+                                  "Minnesota"=expression(bold("Minnesota")),
+                                  "Nebraska"=expression(bold("Nebraska")),
+                                  "Nevada"=expression(bold("Nevada")),
+                                  "New Mexico"=expression(bold("New Mexico")),
+                                  "North Dakota"=expression(bold("North Dakota")),
+                                  "Ohio"=expression(bold("Ohio")),
+                                  "Oregon"=expression(bold("Oregon")),
+                                  "Rhode Island"=expression(bold("Rhode Island")),
+                                  "West Virginia"=expression(bold("West Virginia")),
+                                  parse=TRUE))
     
   })
   
