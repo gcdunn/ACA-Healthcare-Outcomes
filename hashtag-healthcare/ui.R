@@ -12,7 +12,7 @@ shinyUI(
                           onclick ="window.open('https://github.com/gcdunn', '_blank')"),
             br(),
             br(),
-            menuItem('Healthcare Outcomes', tabName = 'outcomes', icon = icon('notes-medical')),
+            menuItem('After ACA: 2015-2017', tabName = 'outcomes', icon = icon('notes-medical')),
             menuItem('Insurance Coverage', tabName = 'insurance', icon = icon('medkit')),
             menuItem('Twitter Analysis', tabName = 'twitter', icon = icon('twitter')),
             menuItem('Data Sources', tabName = 'data', icon = icon('database'))
@@ -22,29 +22,21 @@ shinyUI(
           tabItems(
             tabItem(tabName = 'outcomes',
               title = '', status = 'primary', solidHeader = TRUE, width=3,
-              h3('State-level analysis of healthcare outcomes'),
+              h3('After ACA: Do states with Medicaid expansion offer improved healthcare access?'),
               fluidRow(
                 box(
-                  title = 'Healthcare outcomes:',
+                  title = 'Select a choice:',
                   selectInput('metric', label = NULL,
-                    choices = unique(allMetrics$Data),
-                    selected = 'ER Visits Per 1,000 People')
+                    choices = unique(all_access$Data),
+                    selected = 'Percent of women without a healthcare provider')
                 ), # close box
-                box(
-                  title = 'Year:',
-                  radioButtons('year', label = NULL,
-                    choices = years,
-                    selected = '2016',
-                    inline = TRUE)
-                ), # close box
-                #infoBoxOutput("medicaid_box",width=5),
-                infoBoxOutput("stat_box",width=5)
+                infoBoxOutput("stat_box1",width=6),
+                valueBoxOutput("stat_box2",width=6)
           ), #close fluidRow
           fluidRow(
             box(
-              title = "", status = "primary", solidHeader = FALSE,width=40,
-              plotOutput("box_plot")
-              
+              title = "2015-2017 Healthcare statistics", status = "primary", solidHeader = FALSE,width=40,
+              plotOutput("box_plot", height=450)
             ) # close box
           ) # close fluidBox
         ), #close tabItem
@@ -54,22 +46,24 @@ shinyUI(
                 fluidRow(
                   box(
                     title = 'State:',
-                    selectInput('state2', label = NULL,
+                    selectInput('state', label = NULL,
                                 choices = medicaid$State,
-                                selected = 'Tennessee')
+                                selected = 'Kentucky')
                   ), # close box
-                  box(
-                    title = 'Year:',
-                    radioButtons('year2', label = NULL,
-                                choices=years,
-                                selected = '2016',
-                                inline = TRUE)
-                  ) # close box
+                  #box(
+                  #  title = 'Year:',
+                  #  radioButtons('year2', label = NULL,
+                  #              choices=years,
+                  #              selected = '2016',
+                  #              inline = TRUE)
+                  #) # close box
+                  infoBoxOutput("medicaid_box",width=6)
+                  
                 ), #close fluidRow
                 fluidRow(
                   box(
-                    title = "Types of Insurance", status = "primary", solidHeader = FALSE,width=40,
-                    plotOutput("insurance_bar", width = "100%")
+                    title = "Change in mean Medicaid coverage before and after Medicaid expansion: 2011-2013 vs. 2014-2016", status = "primary", solidHeader = FALSE,width=40,
+                    plotOutput("medicaid_lollipop", height=600)
                   ) # close box
                 ) # close fluidBox
         ), #close tabItem
