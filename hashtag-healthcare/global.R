@@ -1,4 +1,5 @@
 library(shinydashboard)
+library(dashboardthemes)
 library(shinythemes)
 library(tidyverse)
 library(ggplot2)
@@ -8,12 +9,12 @@ library(magrittr)
 library(scales)
 # for word clouds
 library(tidytext)
-library(tm)
-library(SnowballC)
+#library(tm)
+#library(SnowballC)
 library(wordcloud2)
-library(RColorBrewer)
+#library(RColorBrewer)
 # for Twitter API
-library(twitteR)
+#library(twitteR)
 library(rtweet)
 library(tweetbotornot)
 
@@ -34,6 +35,10 @@ totalBirths <- readRDS('data/totalBirths.RDS') %>% filter(state != 'District of 
   gather(key='Year',value='TotalBirths','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017')  %>%
   mutate(Year=as.numeric(Year))
 
+menPoorHealth <- readRDS('data/MenFairOrPoorHealth.RDS')
+womenPoorHealth <- readRDS('data/WomenFairOrPoorHealth.RDS')
+menPoorMentalHealth <- readRDS('data/MenPoorMentalHealth.RDS')
+womenPoorMentalHealth <- readRDS('data/WomenPoorMentalHealth.RDS')
 menNoHealthcareProvider <- readRDS('data/menNoHealthcareProvider.RDS')
 womenNoHealthcareProvider <- readRDS('data/womenNoHealthcareProvider.RDS')
 womenNoHealthcareCost <- readRDS('data/womenNoHealthcareCost.RDS')
@@ -60,6 +65,30 @@ bigInsuranceTable <- do.call("rbind", list(insurance2011,insurance2012,
   ))
 years <- c('2011','2012','2013','2014','2015','2016')
 
+men_poor_health_medicaid <- menPoorHealth %>% inner_join(medicaid,by = c("State" = "State")) %>% 
+  select(State,`All Men`,Expanded) %>%
+  mutate(Data="Percent of men reporting fair or poor health", Medicaid = case_when(
+    Expanded==TRUE ~ "Expanded",
+    Expanded==FALSE ~ "Not Expanded")) %>%
+  rename("N"="All Men")
+women_poor_health_medicaid <- womenPoorHealth %>% inner_join(medicaid,by = c("State" = "State")) %>% 
+  select(State,`All Women`,Expanded) %>%
+  mutate(Data="Percent of women reporting fair or poor health", Medicaid = case_when(
+    Expanded==TRUE ~ "Expanded",
+    Expanded==FALSE ~ "Not Expanded")) %>%
+  rename("N"="All Women")
+men_poor_mental_health_medicaid <- menPoorMentalHealth %>% inner_join(medicaid,by = c("State" = "State")) %>% 
+  select(State,`All Men`,Expanded) %>%
+  mutate(Data="Percent of men reporting poor mental health", Medicaid = case_when(
+    Expanded==TRUE ~ "Expanded",
+    Expanded==FALSE ~ "Not Expanded")) %>%
+  rename("N"="All Men")
+women_poor_mental_health_medicaid <- womenPoorMentalHealth %>% inner_join(medicaid,by = c("State" = "State")) %>% 
+  select(State,`All Women`,Expanded) %>%
+  mutate(Data="Percent of women reporting poor mental health", Medicaid = case_when(
+    Expanded==TRUE ~ "Expanded",
+    Expanded==FALSE ~ "Not Expanded")) %>%
+  rename("N"="All Women")
 men_healthcare_medicaid <- menNoHealthcareProvider %>% inner_join(medicaid,by = c("State" = "State")) %>% 
   select(State,`All Men`,Expanded) %>%
   mutate(Data="Percent of men without a healthcare provider", Medicaid = case_when(
@@ -78,7 +107,21 @@ women_healthcare_cost_medicaid <- womenNoHealthcareCost %>% inner_join(medicaid,
     Expanded==TRUE ~ "Expanded",
     Expanded==FALSE ~ "Not Expanded")) %>%
   rename("N"="All Women")
-all_access <- do.call(rbind,list(men_healthcare_medicaid,women_healthcare_medicaid,women_healthcare_cost_medicaid))
+birthsTeen_medicaid <- birthsTeenMothers19OrYounger %>% inner_join(medicaid,by = c("State" = "State")) %>%
+  inner_join(bigInsuranceTable,by = c("State" = "state","Year"="Year")) %>%
+  select(State,Year,Births,Expanded,Medicaid,Total) %>%
+  inner_join(totalBirths,by = c("State" = "state","Year"="Year")) %>%
+  mutate(birthsNorm = Births/TotalBirths,`Percent on Medicaid`=Medicaid/Total,Data="Teen Birth Rate") %>%
+  select(-Births,-TotalBirths,-Medicaid,-Total) %>% 
+  rename("N"="birthsNorm") %>% filter(Year %in% c('2015','2016','2017')) %>% 
+  group_by(State) %>% summarize(N=mean(N)) %>% inner_join(medicaid,by = c("State" = "State")) %>% 
+  mutate(Data="Teen birth rate per 1,000 (Ages 15-19)", Medicaid = case_when(
+    Expanded==TRUE ~ "Expanded",
+    Expanded==FALSE ~ "Not Expanded"))
+
+all_access <- do.call(rbind,list(men_healthcare_medicaid,women_healthcare_medicaid,women_healthcare_cost_medicaid,
+                                 men_poor_health_medicaid,men_poor_mental_health_medicaid, 
+                                 women_poor_health_medicaid, women_poor_mental_health_medicaid, birthsTeen_medicaid))
 
 white_cancer_medicaid <- whiteCancerIncidence %>% inner_join(medicaid,by = c("State" = "State")) %>% 
   select(State,Year,`Age-Adjusted Rate`,Expanded) %>%
@@ -111,13 +154,6 @@ cancer_medicaid <- AllCancerDeathsByState %>% inner_join(medicaid,by = c("State"
   mutate(Data="Cancer Deaths per 100,000 People",`Percent on Medicaid`=Medicaid/Total) %>%
   select(-Medicaid,-Total) %>%
   rename("N"="DeathsPer100k")
-birthsTeen_medicaid <- birthsTeenMothers19OrYounger %>% inner_join(medicaid,by = c("State" = "State")) %>%
-  inner_join(bigInsuranceTable,by = c("State" = "state","Year"="Year")) %>%
-  select(State,Year,Births,Expanded,Medicaid,Total) %>%
-  inner_join(totalBirths,by = c("State" = "state","Year"="Year")) %>%
-  mutate(birthsNorm = Births/TotalBirths,`Percent on Medicaid`=Medicaid/Total,Data="Teen Birth Rate") %>%
-  select(-Births,-TotalBirths,-Medicaid,-Total) %>% 
-  rename("N"="birthsNorm")
 birthsPrenatal_medicaid <- birthsLatePrenatalCare6Mo %>% inner_join(medicaid,by = c("State" = "State")) %>%
   inner_join(bigInsuranceTable,by = c("State" = "state","Year"="Year")) %>%
   select(State,Year,Births,Expanded,Medicaid,Total) %>%
@@ -125,5 +161,5 @@ birthsPrenatal_medicaid <- birthsLatePrenatalCare6Mo %>% inner_join(medicaid,by 
   mutate(birthsNorm = Births/TotalBirths, `Percent on Medicaid`=Medicaid/Total, Data="Late Prenatal Care Birth Rate") %>%
   select(-Births,-TotalBirths,-Medicaid,-Total) %>% 
   rename("N"="birthsNorm")
-allMetrics <- do.call("rbind", list(er_medicaid,cancer_medicaid,birthsTeen_medicaid,birthsPrenatal_medicaid))
+allMetrics <- do.call("rbind", list(er_medicaid,cancer_medicaid,birthsPrenatal_medicaid))
 

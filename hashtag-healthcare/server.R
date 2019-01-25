@@ -1,6 +1,6 @@
 shinyServer(function(input, output) {
   
-  output$medicaid_box <- renderInfoBox({
+  output$medicaid_box <- renderValueBox({
     expanded <- medicaid %>% 
       filter(State == input$state) %>%
       select(Expanded)
@@ -9,57 +9,63 @@ shinyServer(function(input, output) {
     } else {
       boxInput <- c('did not expand', 'red', 'thumbs-down')
     }
-    infoBox(input$state , paste0(boxInput[1], ' Medicaid'),
+    valueBox(input$state , paste0(boxInput[1], ' Medicaid'),
             color = boxInput[2],
             icon = icon(boxInput[3])
     )# close infoBox
   })
   
-  output$insurance_map <- renderPlot({
-    insurance <- bigInsuranceTable %>% filter(Year==toString(input$year))
-    plot_usmap(data = insurance, values = "PctUninsured", lines = "white") + 
-      scale_fill_continuous(low = "#c79fef", high = "#35063e", name = "Percent\n Uninsured", 
-                            label = scales::comma) + 
-      theme(legend.position = "right", legend.key.size = unit(1.75, "cm"), 
-            legend.text = element_text(size = 14, face = 'bold'), legend.title=element_text(size=16, face = 'bold'))
+  output$change_box <- renderValueBox({
+    expanded <- medicaid %>% 
+      filter(State == input$state) %>%
+      select(Expanded)
+    subset <- bigInsuranceTable %>% filter(state==input$state) %>%
+      select(-PctUninsured) %>%
+      group_by(Era,state) %>% summarize(Medicaid=mean(Medicaid)) %>%
+      ungroup() %>% spread(key=Era,value=Medicaid)
+    change <- abs(round(subset$`2014-2016` - subset$`2011-2013`))
+    if (change > 0) {
+      boxPhrase <- 'more people covered by Medicaid on average'
+    } else {
+      boxPhrase <- 'less people covered by Medicaid on average'
+      
+    }
+    if (expanded == TRUE) {
+      boxColor <- 'green'
+    } else {
+      boxColor <- 'red'
+    }
+    valueBox(prettyNum(change,big.mark=",",scientific=FALSE), boxPhrase,
+            color = 'aqua',
+            icon = icon('line-chart')
+    )# close infoBox
   })
   
-  output$box_plot <- renderPlot({
+  output$medicaid_plot <- renderPlot({
     plot_data <- all_access %>% filter(Data == input$metric)
-    ggplot(plot_data, aes(x=Medicaid,y=N,fill=Medicaid)) +
-      geom_boxplot(legend=FALSE) +
-      ylab("Percent") +
-      #ggtitle(plot_data$Data) +
-      theme_minimal() +
-      theme(axis.ticks = element_blank(),
+      ggplot(plot_data, aes(x=Medicaid,y=N*100,fill=Medicaid)) +
+        geom_boxplot() +
+        ylab("Percent") +
+        scale_fill_manual(values=c("aquamarine", "salmon")) +
+        theme_minimal() +
+        theme(axis.ticks = element_blank(),
             axis.text.x  = element_text(size=16),
             axis.text.y  = element_text(size=16),
             axis.title.x  = element_text(face='bold',size=16),
-            axis.title.y  = element_text(face='bold',size=16))
-    
-    #plot_data <- allMetrics %>% filter(Data==input$metric) %>% 
-    #  filter(Year==input$year)
-    #ggplot(plot_data, aes(x=`Percent on Medicaid`*100, y=N)) + 
-    #  geom_boxplot(aes(group = cut_number(`Percent on Medicaid`*100,3))) + #ggtitle("ER Visits per 1,000 People") +
-    #  xlab("Percent of population receiving Medicaid") +
-    #  ylab(input$metric) +
-    #  theme_tufte() + theme(axis.ticks = element_blank(),
-    #                        axis.text.x  = element_text(size=16),
-    #                        axis.text.y  = element_text(size=16),
-    #                        axis.title.x  = element_text(size=16),
-    #                        axis.title.y  = element_text(size=16))
+            axis.title.y  = element_text(face='bold',size=16),
+            legend.position="none")
   })
-  
-  output$stat_box1 <- renderInfoBox({
+
+  output$stat_box1 <- renderValueBox({
     expanded <- all_access %>% filter(Data == input$metric) %>% filter(Expanded=='TRUE') %>% select(N)
     not_expanded <- all_access %>% filter(Data == input$metric) %>% filter(Expanded=='FALSE') %>% select(N)
     er_ttest <- t.test(not_expanded$N,expanded$N)
     if (er_ttest$p.value <= 0.05) {
-      boxInput <- c('statistically significant difference', 'blue','check-square-o')
+      boxInput <- c('statistically significant difference', 'green','check-square-o')
     } else {
       boxInput <- c('not statistically significant difference', 'blue', 'times')
     }
-    infoBox("t-test: ", boxInput[1],
+    valueBox("t-test: ", boxInput[1],
             color = boxInput[2],
             icon = icon(boxInput[3])
     )# close infoBox
@@ -79,8 +85,9 @@ shinyServer(function(input, output) {
       inner_join(get_sentiments("bing")) %>%
       filter(!tolower(word) %in% c('icymi','healthcare','aca','obamacare','medicaid','dont','im','isnt','didnt','youre','trump','issues','issue','cloud','sap'))
     word_count <- tweet_table %>% count(word, sort = TRUE) %>% filter(n > 2)
-    figPath = system.file("examples/t.png",package = "wordcloud2")
-    wordcloud2(word_count, figPath=figPath,size = 2.3, minRotation = -pi/6, maxRotation = -pi/6, rotateRatio = 1)
+    figPath = "data/tweet.png" #system.file("examples/t.png",package = "wordcloud2")
+    wordcloud2(word_count, shuffle=FALSE, backgroundColor = 'transparent', shape='diamond', color='random-dark', 
+               minRotation = -pi/6, maxRotation = -pi/6, rotateRatio = 1)
    
   })
   
@@ -98,6 +105,7 @@ shinyServer(function(input, output) {
     ggplot(top_words, aes(reorder(word,score), score, fill = sentiment)) +
       geom_col(show.legend = FALSE) +
       #facet_wrap(~sentiment, scales = "free") +  
+      scale_fill_manual(values=c("#55DDE0", "#33658A")) + #, "#F26419", "#999999", "#F6AE2D", "#887191"))
       coord_flip() +
       xlab('Word') +
       ylab('Sentiment Score') + theme(axis.text.x  = element_text(size=16),
@@ -144,26 +152,35 @@ shinyServer(function(input, output) {
       group_by(Era,state) %>% summarize(Medicaid=mean(Medicaid)) %>%
       ungroup() %>% spread(key=Era,value=Medicaid) %>% 
       inner_join(medicaidAll,by=c("state"="State"))
-    #subset$state <- factor(subset$state, levels = subset$state[order(subset$`2011-2013`)])
+    expanded <- medicaid %>% filter(Expanded == 'TRUE') %>% select(State)
+    idx <- which(reorder(subset$state,subset$`2011-2013`)==input$state)
+    
     ggplot(subset) +
-      geom_segment( aes(x=reorder(state,`2011-2013`), xend=state, y=`2011-2013`, yend=`2014-2016`), color=ifelse(subset$state == input$state, "ivory4","grey"),size=1.3) +
-      geom_point( aes(x=reorder(state,`2011-2013`), y=`2011-2013`), color=ifelse(subset$state == input$state, 'salmon', '#cdffeb'), size=ifelse(subset$Expanded == 'TRUE', 5, 4)) +
-      geom_point( aes(x=reorder(state,`2011-2013`), y=`2014-2016`), color=ifelse(subset$state == input$state, 'maroon', '#009f9d'), size=ifelse(subset$Expanded == 'TRUE', 5, 4)) +
-      #geom_rect(aes(xmin=reorder(state,`2011-2013`)[which(reorder(state,`2011-2013`)==input$state)-1], xmax=reorder(state,`2011-2013`)[which(reorder(state,`2011-2013`)==input$state)+1], ymin=0.05, ymax=0.35), 
-      #          color=ifelse(subset$Expanded[which(subset$state==input$state)] == 'TRUE', 'green', 'red'), 
-      #          fill="transparent", alpha=0.01) +
+      geom_segment(aes(x=reorder(state,`2011-2013`),xend=state,y=0.05,yend=0.45),
+                  color=ifelse(subset$Expanded == 'TRUE', 'black', 'transparent'),size=0.25) +
+      #geom_rect(aes(xmin=reorder(state,`2011-2013`)[idx-1], 
+      #              xmax=reorder(state,`2011-2013`)[idx+1], ymin=0.05, ymax=0.45), 
+      #          fill=ifelse(subset$Expanded[which(subset$state==input$state)] == 'TRUE', 'green', 'red'), 
+      #          color="transparent", alpha=0.01) +
+      geom_segment( aes(x=reorder(state,`2011-2013`), xend=state, y=`2011-2013`, yend=`2014-2016`), 
+                    color=ifelse(subset$state == input$state, "ivory4","grey"),size=1.3) +
+      geom_point( aes(x=reorder(state,`2011-2013`), y=`2011-2013`), 
+                  color=ifelse(subset$state == input$state, 'salmon', '#a2bffe'), size=ifelse(subset$Expanded == 'TRUE', 6, 4)) +
+      geom_point( aes(x=reorder(state,`2011-2013`), y=`2014-2016`), 
+                  color=ifelse(subset$state == input$state, 'maroon', '#009f9d'), size=ifelse(subset$Expanded == 'TRUE', 6, 4)) +
+      
       coord_flip() + 
       theme_light() +
-      theme(
+      theme(panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
         axis.text.x  = element_text(face='plain', size=14),
         axis.text.y  = element_text(face='plain', size=14),
         axis.title.x  = element_text(face='bold', size=16),
         axis.title.y  = element_text(face='bold', size=16),
-        #legend.position = "none",
         panel.border = element_blank(),
       ) +
       xlab("State") +
-      ylab("Percent of population covered by Medicaid") +
+      ylab("Fraction of population covered by Medicaid") +
       scale_x_discrete(labels=c(  "Arkansas"=expression(bold("Arkansas")),
                                   "Delaware"=expression(bold("Delaware")),
                                   "Colorado"=expression(bold("Colorado")),
