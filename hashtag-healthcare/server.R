@@ -23,11 +23,11 @@ shinyServer(function(input, output) {
       select(-PctUninsured) %>%
       group_by(Era,state) %>% summarize(Medicaid=mean(Medicaid)) %>%
       ungroup() %>% spread(key=Era,value=Medicaid)
-    change <- abs(round(subset$`2014-2016` - subset$`2011-2013`))
+    change <- percent((subset$`2015-2017` - subset$`2011-2013`)/subset$`2011-2013`)
     if (change > 0) {
-      boxPhrase <- 'more people covered by Medicaid on average'
+      boxPhrase <- 'increase in people covered by Medicaid on average'
     } else {
-      boxPhrase <- 'less people covered by Medicaid on average'
+      boxPhrase <- 'decrease in people covered by Medicaid on average'
       
     }
     if (expanded == TRUE) {
@@ -45,8 +45,8 @@ shinyServer(function(input, output) {
     plot_data <- all_access %>% filter(Data == input$metric)
       ggplot(plot_data, aes(x=Medicaid,y=N*100,fill=Medicaid)) +
         geom_boxplot() +
-        ylab("Percent") +
-        scale_fill_manual(values=c("aquamarine", "salmon")) +
+        ylab(input$metric) +
+        scale_fill_manual(values=c("#a2bffe", "salmon")) +
         theme_minimal() +
         theme(axis.ticks = element_blank(),
             axis.text.x  = element_text(size=16),
@@ -81,18 +81,18 @@ shinyServer(function(input, output) {
   })
   
   output$word_cloud <- renderWordcloud2({
-    tweet_table <- healthcare_tweets %>% unnest_tokens(word, text) %>%  anti_join(stop_words) %>% filter(!nchar(word) < 3) %>%
-      inner_join(get_sentiments("bing")) %>%
-      filter(!tolower(word) %in% c('icymi','healthcare','aca','obamacare','medicaid','dont','im','isnt','didnt','youre','trump','issues','issue','cloud','sap'))
-    word_count <- tweet_table %>% count(word, sort = TRUE) %>% filter(n > 2)
-    figPath = "data/tweet.png" #system.file("examples/t.png",package = "wordcloud2")
+    tweetTable <- tweetTable %>% filter(!tolower(word) %in% 
+                  c('health','patient','innovation','icymi','healthcare','aca','obamacare','medicaid','dont',
+                    'im','isnt','didnt','youre','link','theyre','iwd','trump','issues','issue','cloud')) %>%
+      inner_join(get_sentiments("bing"))
+    word_count <- tweetTable %>% count(word, sort = TRUE) %>% filter(n > 2)
     wordcloud2(word_count, shuffle=FALSE, backgroundColor = 'transparent', shape='diamond', color='random-dark', 
                minRotation = -pi/6, maxRotation = -pi/6, rotateRatio = 1)
    
   })
   
   output$sentiment_graph <- renderPlot({
-    sentiment_table <- tweet_table %>% inner_join(get_sentiments("bing")) 
+    sentiment_table <- tweetTable %>% inner_join(get_sentiments("bing")) 
     word_counts <- sentiment_table %>%
       count(word,sentiment)
     top_words <- word_counts %>% group_by(sentiment) %>% top_n(10) %>% 
@@ -158,15 +158,11 @@ shinyServer(function(input, output) {
     ggplot(subset) +
       geom_segment(aes(x=reorder(state,`2011-2013`),xend=state,y=0.05,yend=0.45),
                   color=ifelse(subset$Expanded == 'TRUE', 'black', 'transparent'),size=0.25) +
-      #geom_rect(aes(xmin=reorder(state,`2011-2013`)[idx-1], 
-      #              xmax=reorder(state,`2011-2013`)[idx+1], ymin=0.05, ymax=0.45), 
-      #          fill=ifelse(subset$Expanded[which(subset$state==input$state)] == 'TRUE', 'green', 'red'), 
-      #          color="transparent", alpha=0.01) +
-      geom_segment( aes(x=reorder(state,`2011-2013`), xend=state, y=`2011-2013`, yend=`2014-2016`), 
+      geom_segment( aes(x=reorder(state,`2011-2013`), xend=state, y=`2011-2013`, yend=`2015-2017`), 
                     color=ifelse(subset$state == input$state, "ivory4","grey"),size=1.3) +
       geom_point( aes(x=reorder(state,`2011-2013`), y=`2011-2013`), 
                   color=ifelse(subset$state == input$state, 'salmon', '#a2bffe'), size=ifelse(subset$Expanded == 'TRUE', 6, 4)) +
-      geom_point( aes(x=reorder(state,`2011-2013`), y=`2014-2016`), 
+      geom_point( aes(x=reorder(state,`2011-2013`), y=`2015-2017`), 
                   color=ifelse(subset$state == input$state, 'maroon', '#009f9d'), size=ifelse(subset$Expanded == 'TRUE', 6, 4)) +
       
       coord_flip() + 

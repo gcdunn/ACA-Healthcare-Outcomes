@@ -1,4 +1,6 @@
-### \#healthcare: How Medicaid expansion affects healthcare outcomes in the United States
-#### This is an ongoing project that will be deployed as a Shiny dashboard in late January 2019.
-- How do the ACA and Medicaid expansion affect healthcare outcomes at the state level?
+### \#healthcare: How Medicaid expansion affects healthcare access in the United States
+
+- How do the ACA and Medicaid expansion affect healthcare access at the state level?
 - Does the state-level implementation of the ACA and Medicaid expansion affect how people feel about healthcare in their home state?
+
+#### This project is deployed as a Shiny dashboard at: https://glenna-dunn.shinyapps.io/hashtag-healthcare/
