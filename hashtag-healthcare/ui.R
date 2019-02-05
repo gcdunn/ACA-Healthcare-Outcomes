@@ -29,7 +29,7 @@ shinyUI(
                        coverage gap through Medicaid expansion.  A Supreme Court decision in 
                        2012 made expansion optional at the state level.  Fourteen states that 
                        had no previous existing Medicaid expansion program (e.g. a waiver) began
-                       Mediciad expansion in January 2014.  Sixteen states sis not expand Medicaid
+                       Medicaid expansion in January 2014.  Sixteen states sis not expand Medicaid
                        through 2017.  The remaining states had either an existing waiver program 
                        or adopted Medicaid expansion later.  The purpose this project is to explore
                        the differences between the first two groups: states that did or did not 
